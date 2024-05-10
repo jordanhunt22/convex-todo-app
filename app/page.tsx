@@ -20,11 +20,24 @@ export default function Home() {
 }
 
 function HomePage() {
+  const activeTasks = useQueryWithAuth(api.tasks.listActiveTasks, {
+    term: "",
+    limit: 3,
+  });
   const activeTasksCount = useQueryWithAuth(api.tasks.activeTasksCount, {});
+  const completedTasks = useQueryWithAuth(api.tasks.listCompletedTasks, {
+    term: "",
+    limit: 3,
+  });
   const completedTasksCount = useQueryWithAuth(
     api.tasks.completedTasksCount,
     {}
   );
+  const overdueTasks = useQueryWithAuth(api.tasks.listOverdueTasks, {
+    term: "",
+    limit: 3,
+  });
+  const overdueTasksCount = useQueryWithAuth(api.tasks.overdueTasksCount, {});
 
   return (
     <>
@@ -34,18 +47,24 @@ function HomePage() {
       <Card>
         <CardHeader>
           <CardTitle>Overdue tasks</CardTitle>
-          <CardDescription>You have x overdue task(s).</CardDescription>
+          <CardDescription>
+            You have {overdueTasksCount} overdue task(s).
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 1</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
-          <Separator className="my-4" />
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 2</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
+          {overdueTasks?.map((task, i) => (
+            <>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium leading-none">
+                  {task.title}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {task.description}
+                </p>
+              </div>
+            </>
+          ))}
         </CardContent>
       </Card>
       <Card>
@@ -56,15 +75,19 @@ function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 1</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
-          <Separator className="my-4" />
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 2</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
+          {activeTasks?.map((task, i) => (
+            <>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium leading-none">
+                  {task.title}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {task.description}
+                </p>
+              </div>
+            </>
+          ))}
         </CardContent>
       </Card>
       <Card className="mb-5">
@@ -76,15 +99,19 @@ function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 1</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
-          <Separator className="my-4" />
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Task 2</h4>
-            <p className="text-sm text-muted-foreground">Description</p>
-          </div>
+          {completedTasks?.map((task, i) => (
+            <>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium leading-none">
+                  {task.title}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {task.description}
+                </p>
+              </div>
+            </>
+          ))}
         </CardContent>
       </Card>
     </>

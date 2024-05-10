@@ -23,6 +23,8 @@ import format from "date-fns/format";
 import { toast } from "sonner";
 import { useMutationWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { api } from "@/convex/_generated/api";
+import { DialogClose } from "@radix-ui/react-dialog";
+import { useState } from "react";
 
 const FormSchema = z.object({
   title: z
@@ -37,6 +39,7 @@ const FormSchema = z.object({
 
 export function TaskInputForm() {
   const addTask = useMutationWithAuth(api.tasks.addTask);
+  const [validResponse, setValidResponse] = useState(false);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -47,12 +50,14 @@ export function TaskInputForm() {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    setValidResponse(true);
     await addTask({
       title: data.title,
       description: data.description,
       due_date: data.due_date.toDateString(),
+      due_date_num: data.due_date.getTime(),
     });
-    toast(JSON.stringify(data, null, 2));
+    toast(`Task "${data.title}" was added to your list!`);
   }
 
   return (
@@ -82,7 +87,7 @@ export function TaskInputForm() {
                 <Input placeholder="Description..." {...field} />
               </FormControl>
               <FormDescription>
-                This is any additional information about your task.
+                Any additional information about your task.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -113,28 +118,25 @@ export function TaskInputForm() {
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0"
-                  align="start"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                This is the date you want this task completed by.
+                The date you want this task completed by.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <DialogClose asChild disabled={!form.formState.isValid}>
+          <Button type="submit">Submit</Button>
+        </DialogClose>
       </form>
     </Form>
   );

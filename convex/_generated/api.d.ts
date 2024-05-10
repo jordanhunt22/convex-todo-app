@@ -15,6 +15,8 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
+import type * as emails from "../emails.js";
 import type * as tasks from "../tasks.js";
 
 /**
@@ -27,6 +29,8 @@ import type * as tasks from "../tasks.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  crons: typeof crons;
+  emails: typeof emails;
   tasks: typeof tasks;
 }>;
 export declare const api: FilterApi<
