@@ -84,6 +84,13 @@ export const completedTaskColumns: ColumnDef<Task>[] = [
   {
     accessorKey: "completed_at",
     header: "Completed on",
+    cell: ({ row }) => (
+      <>
+        {row.original.completed_at
+          ? new Date(row.original.completed_at).toDateString()
+          : ""}
+      </>
+    ),
   },
   {
     id: "description",

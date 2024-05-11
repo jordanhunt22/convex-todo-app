@@ -1,9 +1,10 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { queryWithAuth, mutationWithAuth } from "@convex-dev/convex-lucia-auth";
-import { internalAction, internalMutation } from "./_generated/server";
+import { getAuth, getValidSessionAndRenew } from "@convex-dev/convex-lucia-auth";
+import { DatabaseWriter, internalAction, internalMutation, mutation, query } from "./_generated/server";
 import OpenAI from "openai";
 import { internal } from "./_generated/api";
+import { customMutation, customQuery } from "convex-helpers/server/customFunctions.js";
 
 export const table = {
     tasks: defineTable({
@@ -23,7 +24,29 @@ export const table = {
     }),
 }
 
-export const addTask = mutationWithAuth({
+const authQuery = customQuery(query, {
+    args: { sessionId: v.union(v.string(), v.null()) },
+    input: async (ctx, args) => {
+        const auth = getAuth(ctx.db as DatabaseWriter);
+        const session = await getValidSessionAndRenew(auth, args.sessionId);
+        if (!session?.user._id) throw new Error("Authentication required");
+
+        return { ctx: { ...ctx, session, auth, userId: session?.user._id }, args: {} };
+    },
+});
+
+const authMutation = customMutation(mutation, {
+    args: { sessionId: v.union(v.string(), v.null()) },
+    input: async (ctx, args) => {
+        const auth = getAuth(ctx.db as DatabaseWriter);
+        const session = await getValidSessionAndRenew(auth, args.sessionId);
+        if (!session?.user._id) throw new Error("Authentication required");
+
+        return { ctx: { ...ctx, session, auth, userId: session?.user._id }, args: {} };
+    },
+});
+
+export const addTask = authMutation({
     args: {
         title: v.string(),
         description: v.optional(v.string()),
@@ -33,39 +56,27 @@ export const addTask = mutationWithAuth({
     },
 
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const task = await ctx.db.insert("tasks", { title: args.title, description: args.description, due_date: args.due_date, completed_at: args.completed_at, owner: ctx.session?.user._id, date_number: args.due_date_num });
+        const task = await ctx.db.insert("tasks", { title: args.title, description: args.description, due_date: args.due_date, completed_at: args.completed_at, owner: ctx.userId, date_number: args.due_date_num });
         await ctx.scheduler.runAfter(0, internal.tasks.populateEmbedding, { taskId: task, taskName: args.title, taskDescription: args.description })
 
         return task;
     },
 });
 
-export const completeTask = mutationWithAuth({
+export const completeTask = authMutation({
     args: {
         id: v.id("tasks"),
         completed: v.boolean(),
     },
 
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
         const task = await ctx.db.get(args.id);
 
         if (task) {
-            console.log("here task");
-            console.log("completed arg ", args.completed, "completed_at ", !task.completed_at, String(task.owner), ctx.session.user.userId)
-            if (args.completed && !task.completed_at && task.owner === ctx.session.user._id) {
-                console.log("patched with time");
+            if (args.completed && !task.completed_at && task.owner === ctx.userId) {
                 await ctx.db.patch(args.id, { completed_at: (new Date()).getTime() });
             }
             else if (!args.completed && task.completed_at) {
-                console.log("patched remove time");
                 await ctx.db.patch(args.id, { completed_at: undefined });
             }
             console.log("done")
@@ -73,46 +84,29 @@ export const completeTask = mutationWithAuth({
     }
 })
 
-export const removeTask = mutationWithAuth({
+export const removeTask = authMutation({
     args: {
         id: v.id("tasks"),
     },
 
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        console.log("here1");
-
         const task = await ctx.db.get(args.id);
 
-        console.log("here2");
-
-        if (task && task.owner === ctx.session.user.userId) {
+        if (task && task.owner === ctx.userId) {
             await ctx.db.delete(task._id);
-
-            console.log("here3");
         }
-
-        console.log("here4");
     }
 })
 
-export const listActiveTasks = queryWithAuth({
+export const listActiveTasks = authQuery({
     args: { term: v.string(), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
         let query;
 
         if (args.term === "") {
-            query = ctx.db.query("tasks").withIndex("by_owner_and_completed", (q) => q.eq("owner", user_id).eq("completed_at", undefined));
+            query = ctx.db.query("tasks").withIndex("by_owner_and_completed", (q) => q.eq("owner", ctx.userId).eq("completed_at", undefined));
         } else {
-            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", user_id).eq("completed_at", undefined));
+            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", ctx.userId).eq("completed_at", undefined));
         }
 
         if (args.limit) {
@@ -123,35 +117,24 @@ export const listActiveTasks = queryWithAuth({
     }
 })
 
-export const activeTasksCount = queryWithAuth({
+export const activeTasksCount = authQuery({
     args: {},
     handler: async (ctx) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
-
-        const tasks = await ctx.db.query("tasks").withIndex("by_owner_and_completed", (q) => q.eq("owner", user_id).eq("completed_at", undefined)).collect();
+        const tasks = await ctx.db.query("tasks").withIndex("by_owner_and_completed", (q) => q.eq("owner", ctx.userId).eq("completed_at", undefined)).collect();
 
         return tasks.length;
     }
 })
 
-export const listOverdueTasks = queryWithAuth({
+export const listOverdueTasks = authQuery({
     args: { term: v.string(), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
         let query;
 
         if (args.term === "") {
-            query = ctx.db.query("tasks").withIndex("by_owner_and_completed_and_due_date", (q) => q.eq("owner", user_id).eq("completed_at", undefined).lt("date_number", (new Date()).getTime()));
+            query = ctx.db.query("tasks").withIndex("by_owner_and_completed_and_due_date", (q) => q.eq("owner", ctx.userId).eq("completed_at", undefined).lt("date_number", (new Date()).getTime()));
         } else {
-            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", user_id).eq("completed_at", undefined));
+            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", ctx.userId).eq("completed_at", undefined));
         }
 
         if (args.limit) {
@@ -162,36 +145,24 @@ export const listOverdueTasks = queryWithAuth({
     }
 })
 
-export const overdueTasksCount = queryWithAuth({
+export const overdueTasksCount = authQuery({
     args: {},
-    handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
-
-        const tasks = await ctx.db.query("tasks").withIndex("by_owner_and_completed_and_due_date", (q) => q.eq("owner", user_id).eq("completed_at", undefined).lt("date_number", (new Date()).getTime())).collect();
+    handler: async (ctx) => {
+        const tasks = await ctx.db.query("tasks").withIndex("by_owner_and_completed_and_due_date", (q) => q.eq("owner", ctx.userId).eq("completed_at", undefined).lt("date_number", (new Date()).getTime())).collect();
 
         return tasks.length;
     }
 })
 
-export const listCompletedTasks = queryWithAuth({
+export const listCompletedTasks = authQuery({
     args: { term: v.string(), limit: v.optional(v.number()) },
     handler: async (ctx, args) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
-
         let query;
 
         if (args.term === "") {
-            query = ctx.db.query("tasks").withIndex("by_owner", (q) => q.eq("owner", user_id)).filter((q) => q.neq(q.field("completed_at"), undefined));
+            query = ctx.db.query("tasks").withIndex("by_owner", (q) => q.eq("owner", ctx.userId)).filter((q) => q.neq(q.field("completed_at"), undefined));
         } else {
-            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", user_id)).filter((q) => q.neq(q.field("completed_at"), undefined));
+            query = ctx.db.query("tasks").withSearchIndex("by_title", (q) => q.search("title", args.term).eq("owner", ctx.userId)).filter((q) => q.neq(q.field("completed_at"), undefined));
         }
 
         if (args.limit) {
@@ -202,16 +173,10 @@ export const listCompletedTasks = queryWithAuth({
     }
 })
 
-export const completedTasksCount = queryWithAuth({
+export const completedTasksCount = authQuery({
     args: {},
     handler: async (ctx) => {
-        if (!ctx.session?.user._id) {
-            return null;
-        }
-
-        const user_id = ctx.session?.user._id;
-
-        const tasks = await ctx.db.query("tasks").withIndex("by_owner", (q) => q.eq("owner", user_id)).filter((q) => q.neq(q.field("completed_at"), undefined)).collect();
+        const tasks = await ctx.db.query("tasks").withIndex("by_owner", (q) => q.eq("owner", ctx.userId)).filter((q) => q.neq(q.field("completed_at"), undefined)).collect();
 
         return tasks.length;
     }

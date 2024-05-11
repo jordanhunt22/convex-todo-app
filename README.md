@@ -1,13 +1,37 @@
-# Convex + TypeScript + Next.js + Lucia + Tailwind + shadcn/ui
+# Simple Todo App
 
-This template provides a minimal setup to get Convex working with [Next.js](https://nextjs.org/). It uses [Lucia](https://lucia-auth.com/) for user authentication.
+A web application that allows you to create, complete, and delete tasks. On each
+task you can add a title, description, and a due date.
 
-Start by editing `convex/myFunctions.ts` and interact with your Next.js app.
+## Tech Stack
 
-See Convex docs at https://docs.convex.dev/home
+- Nextjs and React for the frontend
+- [Convex](www.convex.dev) for the backend
 
-## Setting up
+## Getting Started
 
-```
-npm create convex@latest -t nextjs-lucia-shadcn
-```
+### Install everything
+
+`npm i`
+
+### Set up your Convex server
+
+`npx convex dev`
+
+### Run the frontend
+
+In a different terminal, run the command
+`npm run dev:client`
+
+## Questions
+
+Chat with @JordanHunt22 in the [Convex Discord community](https://convex.dev/community)
+
+## Possible Improvements
+
+[] Reminders for completing tasks through email
+[] Daily digest for tasks to complete
+[] Weely summary of completed tasks
+[] AI chat to interact with your current/past tasks
+[] Pagination on the task list
+[] Categorization of tasks (do this automatically with AI?)
