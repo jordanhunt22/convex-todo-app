@@ -17,13 +17,18 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { TaskInputForm } from "../components/task-form";
+import { usePaginatedQueryWithAuth } from "../helpers";
 
 export default function Home() {
   const [term, setTerm] = useState<string>("");
-  const tasks = useQueryWithAuth(api.tasks.listActiveTasks, { term });
+  const { results, status, loadMore } = usePaginatedQueryWithAuth(
+    api.tasks.listActiveTasksPaginated,
+    { term },
+    { initialNumItems: 5 }
+  );
 
   return (
-    <main className="container max-w-2xl flex flex-col gap-8">
+    <main className="container max-w-3xl flex flex-col gap-8">
       <div className="container mx-auto py-10">
         <div className="flex mb-3">
           <Input
@@ -34,7 +39,17 @@ export default function Home() {
           />
           <AddTask />
         </div>
-        <DataTable columns={columns} data={tasks ?? []} />
+        <DataTable columns={columns} data={results ?? []} />
+        <div className="flex justify-center">
+          <Button
+            className="align-center m-2"
+            variant="outline"
+            onClick={() => loadMore(5)}
+            disabled={status !== "CanLoadMore"}
+          >
+            Load More
+          </Button>
+        </div>
       </div>
     </main>
   );

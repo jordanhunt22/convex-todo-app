@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,19 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useMutationWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { ColumnDef, Row } from "@tanstack/react-table";
 
-export type Task = {
-  _id: Id<"tasks">;
-  title: string;
-  completed_at?: number;
-  due_date: string;
-  description?: string;
-};
+export type Task = Doc<"tasks">;
 
 export const columns: ColumnDef<Task>[] = [
   {
@@ -37,8 +32,19 @@ export const columns: ColumnDef<Task>[] = [
     header: "Title",
   },
   {
-    accessorKey: "due_date",
-    header: "Due date",
+    header: "Categories",
+    cell: ({ row }) => <TaskCategories row={row}></TaskCategories>,
+  },
+  {
+    accessorKey: "completed_at",
+    header: "Completed on",
+    cell: ({ row }) => (
+      <>
+        {row.original.date_number
+          ? new Date(row.original.date_number).toDateString()
+          : ""}
+      </>
+    ),
   },
   {
     id: "description",
@@ -82,7 +88,6 @@ export const completedTaskColumns: ColumnDef<Task>[] = [
     header: "Title",
   },
   {
-    accessorKey: "completed_at",
     header: "Completed on",
     cell: ({ row }) => (
       <>
@@ -113,6 +118,18 @@ function TaskCheckbox({ row }: { row: Row<Task> }) {
       }
       aria-label="Select row"
     />
+  );
+}
+
+function TaskCategories({ row }: { row: Row<Task> }) {
+  return (
+    <>
+      {row.original.categories.map((cat) => (
+        <Badge className="m-1" variant="default">
+          {cat}
+        </Badge>
+      ))}
+    </>
   );
 }
 

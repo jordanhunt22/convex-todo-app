@@ -15,11 +15,6 @@ import Tabs from "./components/tabs";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// export const metadata: Metadata = {
-//   title: "My App Title",
-//   description: "An AI todo app built on Convex!",
-// };
-
 export default function RootLayout({
   children,
 }: {

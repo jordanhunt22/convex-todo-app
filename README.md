@@ -21,7 +21,7 @@ task you can add a title, description, and a due date.
 ### Run the frontend
 
 In a different terminal, run the command
-`npm run dev:client`
+`npm run dev:frontend`
 
 ## Questions
 
@@ -29,9 +29,10 @@ Chat with @JordanHunt22 in the [Convex Discord community](https://convex.dev/com
 
 ## Possible Improvements
 
-[] Reminders for completing tasks through email
-[] Daily digest for tasks to complete
-[] Weely summary of completed tasks
-[] AI chat to interact with your current/past tasks
-[] Pagination on the task list
-[] Categorization of tasks (do this automatically with AI?)
+- [ ] Reminders for completing tasks through email
+- [ ] Daily digest for tasks to complete
+- [ ] Weely summary of completed tasks
+- [ ] AI chat to interact with your current/past tasks
+- [ ] Pagination on the task list
+- [ ] Categorization of tasks (do this automatically with AI?)
+- [ ] Add estimated time for each task
