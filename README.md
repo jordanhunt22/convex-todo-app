@@ -33,6 +33,6 @@ Chat with @JordanHunt22 in the [Convex Discord community](https://convex.dev/com
 - [ ] Daily digest for tasks to complete
 - [ ] Weely summary of completed tasks
 - [ ] AI chat to interact with your current/past tasks
-- [ ] Pagination on the task list
-- [ ] Categorization of tasks (do this automatically with AI?)
+- [x] Pagination on the task list
+- [x] Categorization of tasks (do this automatically with AI?)
 - [ ] Add estimated time for each task

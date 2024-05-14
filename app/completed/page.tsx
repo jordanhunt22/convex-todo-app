@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { usePaginatedQueryWithAuth } from "../helpers";
 import { Button } from "@/components/ui/button";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 export default function Home() {
   const [term, _setTerm] = useState<string>("");
@@ -30,7 +31,10 @@ export default function Home() {
             onClick={() => loadMore(5)}
             disabled={status !== "CanLoadMore"}
           >
-            Load More
+            {status !== "LoadingMore" && "Load More"}
+            {status === "LoadingMore" && (
+              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+            )}
           </Button>
         </div>
       </div>

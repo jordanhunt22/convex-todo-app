@@ -36,8 +36,7 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => <TaskCategories row={row}></TaskCategories>,
   },
   {
-    accessorKey: "completed_at",
-    header: "Completed on",
+    header: "Due date",
     cell: ({ row }) => (
       <>
         {row.original.date_number

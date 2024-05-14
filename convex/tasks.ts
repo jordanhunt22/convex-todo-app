@@ -20,13 +20,28 @@ import {
 
 export const table = {
   tasks: defineTable({
+    // Title of a task
     title: v.string(),
+
+    // Description of what a task entails
     description: v.optional(v.string()),
+
+    // Due date string of a task
     due_date: v.string(),
+
+    // Due date in milliseconds since epoch
     date_number: v.optional(v.number()),
+
+    // Completion data in milliseconds since epoch
     completed_at: v.optional(v.number()),
+
+    // Categories associated with a task
     categories: v.array(v.string()),
+
+    // The owner id of a task
     owner: v.id("users"),
+
+    // Embedding of the task contents
     embedding: v.optional(v.array(v.number())),
   })
     .index("by_owner_and_completed", ["owner", "completed_at"])
@@ -82,6 +97,7 @@ export const addTask = authMutation({
     due_date: v.string(),
     due_date_num: v.number(),
     completed_at: v.optional(v.number()),
+    categories: v.optional(v.array(v.string()))
   },
 
   handler: async (ctx, args) => {
@@ -92,7 +108,7 @@ export const addTask = authMutation({
       completed_at: args.completed_at,
       owner: ctx.userId,
       date_number: args.due_date_num,
-      categories: ["test1", "test2"],
+      categories: args.categories ?? [],
     });
     await ctx.scheduler.runAfter(0, internal.tasks.populateEmbedding, {
       taskId: task,

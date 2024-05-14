@@ -6,7 +6,7 @@ import { DataTable } from "../tasks-table/data-table";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "@radix-ui/react-icons";
+import { PlusIcon, ReloadIcon } from "@radix-ui/react-icons";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +47,10 @@ export default function Home() {
             onClick={() => loadMore(5)}
             disabled={status !== "CanLoadMore"}
           >
-            Load More
+            {status !== "LoadingMore" && "Load More"}
+            {status === "LoadingMore" && (
+              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+            )}
           </Button>
         </div>
       </div>

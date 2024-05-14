@@ -25,6 +25,15 @@ import { useMutationWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { api } from "@/convex/_generated/api";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { useState } from "react";
+import { RadioGroupItem } from "@radix-ui/react-radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const FormSchema = z.object({
   title: z
@@ -35,6 +44,7 @@ const FormSchema = z.object({
     .max(50, { message: "Title can't be more than 50 characters." }),
   description: z.string(),
   due_date: z.date(),
+  category: z.optional(z.string()),
 });
 
 export function TaskInputForm() {
@@ -56,6 +66,7 @@ export function TaskInputForm() {
       description: data.description,
       due_date: data.due_date.toDateString(),
       due_date_num: data.due_date.getTime(),
+      categories: data.category ? [data.category] : [],
     });
     toast(`Task "${data.title}" was added to your list!`);
   }
@@ -89,6 +100,27 @@ export function TaskInputForm() {
               <FormDescription>
                 Any additional information about your task.
               </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category for this task" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="personal">Personal</SelectItem>
+                  <SelectItem value="work">Work</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
