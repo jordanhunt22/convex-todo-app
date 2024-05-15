@@ -25,8 +25,6 @@ import { useMutationWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { api } from "@/convex/_generated/api";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { useState } from "react";
-import { RadioGroupItem } from "@radix-ui/react-radio-group";
-import { RadioGroup } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,

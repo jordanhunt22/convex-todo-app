@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,8 +18,9 @@ import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useMutationWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { ReaderIcon, TrashIcon } from "@radix-ui/react-icons";
 import { ColumnDef, Row } from "@tanstack/react-table";
+import { toast } from "sonner";
 
 export type Task = Doc<"tasks">;
 
@@ -50,7 +52,10 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => (
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline">View description</Button>
+          <Button variant="outline">
+            {<ReaderIcon className="mr-2" />}
+            {"Details"}
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -108,13 +113,13 @@ function TaskCheckbox({ row }: { row: Row<Task> }) {
   return (
     <Checkbox
       checked={row.original.completed_at !== undefined}
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      onCheckedChange={async (value) =>
-        await completeTask({
+      onCheckedChange={(value) => {
+        completeTask({
           id: row.original._id,
           completed: value as boolean,
-        })
-      }
+        });
+        toast(`Task "${row.original.title}" was completed`);
+      }}
       aria-label="Select row"
     />
   );
@@ -124,7 +129,7 @@ function TaskCategories({ row }: { row: Row<Task> }) {
   return (
     <>
       {row.original.categories.map((cat) => (
-        <Badge className="m-1" variant="default">
+        <Badge className="m-1" variant="default" key={cat}>
           {cat}
         </Badge>
       ))}
@@ -145,7 +150,7 @@ function TaskDelete({ row }: { row: Row<Task> }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            Are you sure you want to delete the task "{row.original.title}"?
+            {'Are you sure you want to delete the task "{row.original.title}"?'}
           </DialogTitle>
         </DialogHeader>
         <div>
@@ -159,7 +164,10 @@ function TaskDelete({ row }: { row: Row<Task> }) {
           <DialogClose>
             <Button
               variant="destructive"
-              onClick={() => removeTask({ id: row.original._id })}
+              onClick={() => {
+                removeTask({ id: row.original._id });
+                toast(`Task "${row.original.title}" was deleted`);
+              }}
             >
               Confirm
             </Button>

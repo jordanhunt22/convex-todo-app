@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { completedTaskColumns } from "../tasks-table/columns";
 import { DataTable } from "../tasks-table/data-table";
 import { api } from "@/convex/_generated/api";

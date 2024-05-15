@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryWithAuth } from "@convex-dev/convex-lucia-auth/react";
 import { columns } from "../tasks-table/columns";
 import { DataTable } from "../tasks-table/data-table";
 import { api } from "@/convex/_generated/api";
@@ -30,7 +29,7 @@ export default function Home() {
   return (
     <main className="container max-w-3xl flex flex-col gap-8">
       <div className="container mx-auto py-10">
-        <div className="flex mb-3">
+        <div className="flex mb-3 justify-between">
           <Input
             className="mr-2 w-48"
             value={term}
@@ -58,7 +57,7 @@ export default function Home() {
   );
 }
 
-export function AddTask() {
+function AddTask() {
   return (
     <Dialog>
       <DialogTrigger asChild>

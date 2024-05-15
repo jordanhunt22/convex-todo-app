@@ -194,7 +194,8 @@ export const listActiveTasksPaginated = authQuery({
         .query("tasks")
         .withIndex("by_owner_and_completed", (q) =>
           q.eq("owner", ctx.userId).eq("completed_at", undefined)
-        );
+        )
+        .order("desc");
     } else {
       query = ctx.db
         .query("tasks")
@@ -309,8 +310,7 @@ export const listCompletedTasksPaginated = authQuery({
     if (args.term === "") {
       query = ctx.db
         .query("tasks")
-        .withIndex("by_owner", (q) => q.eq("owner", ctx.userId))
-        .filter((q) => q.neq(q.field("completed_at"), undefined));
+        .withIndex("by_owner_and_completed", (q) => q.eq("owner", ctx.userId).gt("completed_at", Number.NEGATIVE_INFINITY)).order("desc");
     } else {
       query = ctx.db
         .query("tasks")
