@@ -154,36 +154,6 @@ export const removeTask = authMutation({
   },
 });
 
-export const listActiveTasks = authQuery({
-  args: { term: v.string(), limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    let query;
-
-    if (args.term === "") {
-      query = ctx.db
-        .query("tasks")
-        .withIndex("by_owner_and_completed", (q) =>
-          q.eq("owner", ctx.userId).eq("completed_at", undefined)
-        );
-    } else {
-      query = ctx.db
-        .query("tasks")
-        .withSearchIndex("by_title", (q) =>
-          q
-            .search("title", args.term)
-            .eq("owner", ctx.userId)
-            .eq("completed_at", undefined)
-        );
-    }
-
-    if (args.limit) {
-      return await query.take(args.limit);
-    }
-
-    return await query.collect();
-  },
-});
-
 export const listActiveTasksPaginated = authQuery({
   args: { term: v.string(), paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -275,33 +245,6 @@ export const overdueTasksCount = authQuery({
   },
 });
 
-export const listCompletedTasks = authQuery({
-  args: { term: v.string(), limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    let query;
-
-    if (args.term === "") {
-      query = ctx.db
-        .query("tasks")
-        .withIndex("by_owner", (q) => q.eq("owner", ctx.userId))
-        .filter((q) => q.neq(q.field("completed_at"), undefined));
-    } else {
-      query = ctx.db
-        .query("tasks")
-        .withSearchIndex("by_title", (q) =>
-          q.search("title", args.term).eq("owner", ctx.userId)
-        )
-        .filter((q) => q.neq(q.field("completed_at"), undefined));
-    }
-
-    if (args.limit) {
-      return await query.take(args.limit);
-    }
-
-    return await query.collect();
-  },
-});
-
 export const listCompletedTasksPaginated = authQuery({
   args: { term: v.string(), paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -310,7 +253,8 @@ export const listCompletedTasksPaginated = authQuery({
     if (args.term === "") {
       query = ctx.db
         .query("tasks")
-        .withIndex("by_owner_and_completed", (q) => q.eq("owner", ctx.userId).gt("completed_at", Number.NEGATIVE_INFINITY)).order("desc");
+        .withIndex("by_owner_and_completed", (q) => q.eq("owner", ctx.userId).gt("completed_at", Number.NEGATIVE_INFINITY /* Gets all results that aren't undefined */))
+        .order("desc");
     } else {
       query = ctx.db
         .query("tasks")

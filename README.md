@@ -3,6 +3,8 @@
 A web application that allows you to create, complete, and delete tasks. On each
 task you can add a title, description, and a due date.
 
+You can access a live version of this application at [convex-todo.vercel.app](www.convex-todo.vercel.app).
+
 ## Tech Stack
 
 - Nextjs and React for the frontend
